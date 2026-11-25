@@ -1,0 +1,883 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>受講生の合格率を上げるための3つの施策案</title>
+    <style>
+      /* 最低限のスタート用CSS。ここを土台に、自分で整えていく（別ファイルにせず、この中に書く）。 */
+      :root {
+        --brand: #184086;
+        --ink: #1a2235;
+        --line: #bbbfc6;
+        --accent: #e45a0f; /* 強調色 */
+        --th-bg: #dde3ee;  /* 表の見出しの背景（--brand の紺を薄くした色） */
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #e9edf3; /* 画面で見るときの、紙のまわりの色 */
+        color: var(--ink);
+        font-family:
+          "BIZ UDPGothic", "Hiragino Sans", "Noto Sans JP", Meiryo, sans-serif;
+        font-size: 14px;   /* 本文の文字の大きさ（スマホでも読める大きさ） */
+        line-height: 1.6;
+        -webkit-print-color-adjust: exact; /* 印刷時も背景色を消さない */
+        print-color-adjust: exact;
+      }
+
+      /* ===== レポート全体（画面の幅に合わせて伸び縮みする） ===== */
+      .sheet {
+        max-width: 960px;  /* 広い画面でも、これ以上は広げない（読みやすい行の長さを保つ） */
+        margin: 16px auto; /* 左右の auto で中央寄せ */
+        padding: 16px;
+        background: #efebe1;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+        display: grid;
+        gap: 16px;         /* 段と段のすき間 */
+      }
+      @media print {
+        body { background: #efebe1; }
+        .sheet { margin: 0; box-shadow: none; }
+      }
+
+
+      /* ===== 施策1つ分のブロック ===== */
+      .policy {
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        overflow: hidden;
+        min-height: 0;
+      }
+      .hero {
+        background: var(--brand);
+        color: #ffffff;
+        padding: 8px 16px;
+      }
+      .hero h1 {
+        margin: 0;
+        font-size: 18px;
+      }
+      .policy-body {
+        flex: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); /* 左：文章と表 / 右：グラフ（中身が広くても比率を守る） */
+        gap: 20px;
+        padding: 12px 16px;
+        min-height: 0;
+      }
+      .policy-body p {
+        margin: 0 0 8px;
+      }
+      h2 {
+        font-size: 15px;
+        margin: 8px 0 4px;
+        color: var(--brand);
+      }
+      h3 {
+        font-size: 13.5px;
+        margin: 8px 0 4px;
+      }
+      .chart {
+        display: flex;
+        flex-direction: column;
+        justify-content: center; /* グラフを右側の枠の上下中央に */
+        border-left: 1px solid var(--line);
+        padding-left: 20px;
+      }
+      svg {
+        max-width: 100%;
+        height: auto;
+      }
+      /* 施策1（最初の課題）だけ「2行×2列」：上の行＝文章（2列ぶち抜き）、下の行＝棒グラフ｜散布図 */
+      .span2 {
+        grid-column: 1 / -1; /* 1列目から最後の列まで、横幅いっぱいに広げる */
+      }
+      .chart.row2 svg {
+        max-height: 260px;   /* 散布図の高さの上限（横幅もそれに合わせて縮む） */
+      }
+      /* まとめの段 */
+      .col-line {
+        border-left: 1px solid var(--line); /* 左右の区切り線 */
+        padding-left: 20px;
+      }
+      .placeholder {
+        color: #8a93a6; /* 仮の文は薄い色で */
+      }
+      .summary-list {
+        margin: 0;
+        padding-left: 1.5em; /* 番号の分だけ左に余白 */
+      }
+      .summary-list li {
+        margin-bottom: 6px;  /* 項目と項目のすき間 */
+      }
+      .reason {
+        display: block;      /* 改行して、打ち手の下に理由を書く */
+        font-size: 12.5px;
+        color: #4a5368;
+        margin-top: 2px;
+      }
+      /* ===== レポートのタイトル ===== */
+      .report-title h1 {
+        margin: 0 0 4px;
+        font-size: 24px;
+        color: var(--brand);
+      }
+      .report-title p {
+        margin: 0;
+        font-size: 12.5px;
+        color: #4a5368;
+        border-bottom: 3px solid var(--brand);
+        padding-bottom: 8px;
+      }
+      /* ===== 数字のカード（標本数を見せる） ===== */
+      .stats {
+        display: flex;
+        flex-wrap: wrap;     /* 入りきらなければ折り返す */
+        gap: 8px;
+        margin: 4px 0 8px;
+      }
+      .stat {
+        display: flex;
+        flex-direction: column;
+        min-width: 6.5em;
+        padding: 4px 10px;
+        background: rgba(255, 255, 255, 0.6);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+      }
+      .stat-label {
+        font-size: 11.5px;
+        color: #4a5368;
+      }
+      .stat-num {
+        font-size: 18px;
+        font-weight: bold;
+        color: var(--brand);
+        line-height: 1.3;
+      }
+      .stat.accent .stat-num {
+        color: var(--accent);  /* いちばん見てほしい数字はオレンジ */
+      }
+      .stat-sub {
+        font-size: 11px;
+        color: #4a5368;
+      }
+      /* ===== 施策3：年代別の合格率（SVGの棒グラフ） ===== */
+      .age-bar { fill: var(--brand); }
+      .age-bar.accent { fill: var(--accent); }
+      .age-grid { stroke: var(--line); stroke-width: 1; }
+      .age-axis { stroke: #6b7488; stroke-width: 1.5; }
+      .age-tick { font-size: 15px; fill: #6b7488; text-anchor: end; }
+      .age-label { font-size: 18px; fill: var(--ink); text-anchor: middle; }
+      .age-n { font-size: 15px; fill: #5b6477; text-anchor: middle; }
+      .age-value { font-size: 20px; font-weight: bold; fill: #fff; text-anchor: middle; }
+      .age-avg { stroke: var(--ink); stroke-width: 2; stroke-dasharray: 8 5; }
+      .age-avg-label { font-size: 14px; fill: var(--ink); text-anchor: middle; }
+      .summary-list li::marker {
+        color: var(--brand); /* 番号を紺色・太字にして目立たせる */
+        font-weight: bold;
+      }
+      .policy-body.two-rows {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-rows: auto 1fr;
+        row-gap: 12px;
+      }
+      .chart.row2 {
+        border-top: 1px solid var(--line); /* 上の行との区切り線 */
+        padding-top: 12px;
+      }
+      .chart.no-line {
+        border-left: none; /* 左の列なので縦の区切り線はいらない */
+        padding-left: 0;
+      }
+      .note {
+        font-size: 12.5px;
+        margin: 2px 0 0;
+      }
+
+      /* ===== 表 ===== */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      th, td {
+        padding: 4px 8px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+      }
+      td {
+        white-space: nowrap; /* データのマスは改行させない（見出しのマスは改行OK） */
+      }
+      td.hl {
+        color: var(--accent); /* 目立たせたいマス（差がいちばん大きい講座） */
+        font-weight: bold;
+      }
+      th {
+        background: var(--th-bg);
+        color: var(--brand);                  /* 見出しの文字は紺色にして、青い帯とそろえる */
+        border-bottom: 2px solid var(--brand); /* 見出しとデータの境目を少し太い線に */
+      }
+
+      /* ===== 施策2（学歴）：CSSの縦棒グラフ ===== */
+      .vchart {
+        position: relative;         /* 平均の点線を、この箱を基準に置くため */
+        display: flex;              /* 棒を横に並べる */
+        align-items: flex-end;      /* 棒の下端をそろえる（地面を作る） */
+        height: 200px;              /* 棒の高さ100%の基準 */
+        margin-top: 8px;
+        border-bottom: 1px solid #6b7488;
+      }
+      .slot {
+        flex: 1;                    /* 5本の棒に同じ幅を割り当てる（下のラベルと位置をそろえる） */
+        min-width: 0;
+        height: 100%;
+        display: flex;
+        flex-direction: column;     /* 数値と棒を縦に積む */
+        justify-content: flex-end;
+        align-items: center;
+      }
+      .val {
+        font-size: 12px;
+        font-weight: bold;
+        color: #fff;                /* 棒の中に白い文字で書く */
+        padding-bottom: 4px;
+      }
+      .vbar {
+        position: relative;
+        z-index: 1;                 /* 棒を点線より手前に出す */
+        width: 48px;                /* 「55.0%」が棒の中に収まる幅 */
+        background: var(--brand);
+        border-radius: 4px 4px 0 0; /* 上の角だけ丸く */
+      }
+      .vchart .vbar {
+        display: flex;              /* 数値を棒の中の下のほうに置く */
+        align-items: flex-end;
+        justify-content: center;
+      }
+      .avg-line {
+        position: absolute;         /* .vchart の中で位置を自由に決める */
+        left: 0;
+        right: 0;
+        border-top: 2px dashed var(--ink); /* 点線 */
+        z-index: 0;                 /* 棒の後ろに回す */
+      }
+      .avg-line span {
+        position: absolute;
+        right: 0;
+        bottom: 2px;                /* 点線のすぐ上に文字を置く */
+        font-size: 11.5px;
+        background: #efebe1;        /* 背景と同じ色で塗り、点線が文字に重ならないように */
+        padding: 0 4px;
+      }
+      .xlabels {
+        display: flex;
+        margin-top: 4px;
+      }
+      .xlabels span {
+        flex: 1;                    /* 棒と同じ幅にして、真下にラベルが来るようにする */
+        min-width: 0;
+        text-align: center;
+        font-size: 12px;
+        line-height: 1.4;
+      }
+      .xlabels small {
+        color: #5b6477;
+      }
+      .vbar.accent {
+        background: var(--accent);
+      }
+
+      /* ===== 施策1（最初の課題）：グループ棒グラフ（1つのx項目に棒を2本並べる） ===== */
+      .gchart {
+        display: flex;                  /* 最終結果のグループを横に並べる */
+        justify-content: space-around;  /* グループを均等な間隔で配置 */
+        gap: 8px;
+      }
+      .group {
+        display: flex;
+        flex-direction: column;  /* 棒の束とラベルを縦に積む */
+        align-items: center;
+      }
+      .bars {
+        display: flex;           /* 2本の棒を横に並べる */
+        align-items: flex-end;   /* 棒の下端をそろえる */
+        gap: 4px;
+        height: 160px;           /* 棒の高さ100%の基準 */
+        padding: 0 4px;
+        border-bottom: 1px solid var(--line);
+      }
+      .bar-item {
+        display: flex;
+        flex-direction: column;  /* 数値と棒を縦に積む */
+        justify-content: flex-end;
+        align-items: center;
+        height: 100%;
+        font-size: 12px;
+      }
+      .bar-item .vbar {
+        width: 26px;
+      }
+      .legend {
+        display: flex;
+        flex-wrap: wrap;   /* 入りきらないときは次の行に折り返す */
+        gap: 4px 14px;
+        font-size: 12.5px;
+        margin-bottom: 6px;
+      }
+      .swatch {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        margin-right: 4px;
+        vertical-align: middle;
+        background: var(--brand);
+      }
+      .swatch.accent {
+        background: var(--accent);
+      }
+      .swatch.round {
+        border-radius: 50%; /* 散布図の凡例は丸にする */
+      }
+
+      /* ===== 施策1（最初の課題）：SVGの散布図 ===== */
+      .dot { fill: var(--brand); fill-opacity: 0.6; }      /* 点が重なっても見えるよう少し透かす */
+      .dot.first { fill: var(--accent); fill-opacity: 1; } /* 1回目の課題だけ強調色 */
+      .dot.start { fill: #fff; stroke: var(--ink); stroke-width: 1.5; } /* 開講時の基準点は白抜き */
+      .svg-grid { stroke: var(--line); stroke-width: 0.8; }
+      .svg-axis { stroke: #6b7488; stroke-width: 1; }
+      .svg-tick { font-size: 13px; fill: #6b7488; text-anchor: end; }     /* 右寄せ */
+      .svg-xtick { font-size: 13px; fill: #6b7488; text-anchor: middle; } /* 中央寄せ */
+      .svg-note { font-size: 12px; fill: var(--ink); }
+      .dot.stay { fill: var(--brand); fill-opacity: 0.55; }  /* 途中退会以外 */
+      .dot.drop { fill: var(--accent); fill-opacity: 0.75; } /* 途中退会者 */
+      .svg-trend { stroke-width: 2; stroke-dasharray: 6 4; }  /* 回帰線は点線 */
+      .svg-trend.stay { stroke: var(--brand); }
+      .svg-trend.drop { stroke: var(--accent); }
+
+      /* ===== 施策3：SVGの円グラフ。SVGでは background ではなく fill（塗り）と stroke（線）を使う ===== */
+      .pie {
+        fill: none;          /* 円の中は塗らない */
+        stroke-width: 50;    /* 線を太くして、円グラフの「輪」にする */
+      }
+      .pie-young  { stroke: var(--accent); } /* 伝えたい20〜34歳だけ強調色 */
+      .pie-middle { stroke: var(--brand); }
+      .pie-senior { stroke: #9aa5b8; }
+      .pie-young-fill  { fill: var(--accent); }  /* 凡例の四角用 */
+      .pie-middle-fill { fill: var(--brand); }
+      .pie-senior-fill { fill: #9aa5b8; }
+      .pie-center { font-size: 18px; fill: #6b7488; text-anchor: middle; } /* 中央寄せ */
+      .pie-center.big { font-size: 24px; font-weight: bold; fill: var(--ink); }
+      .svg-legend { font-size: 20px; fill: var(--ink); }
+      .svg-legend .strong { font-weight: bold; }
+
+      /* ===== 狭い画面（スマホなど、幅700px以下）のときだけ効くルール =====
+         ※ CSSは「後に書いたほうが勝つ」ので、上書きしたいこのルールは必ず <style> のいちばん最後に置く */
+      @media (max-width: 700px) {
+        .sheet {
+          margin: 0;          /* 画面のふちまで使う */
+          padding: 10px;
+          box-shadow: none;
+          gap: 12px;
+        }
+        .hero h1 {
+          font-size: 16px;
+        }
+        /* 「左：文章 ／ 右：グラフ」の2列を、上下の1列に並べ替える */
+        .policy-body,
+        .policy-body.two-rows {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 12px;
+          padding: 10px 12px;
+        }
+        /* 1列になるので、縦の区切り線を横の区切り線に変える */
+        .chart,
+        .col-line {
+          border-left: none;
+          padding-left: 0;
+          border-top: 1px solid var(--line);
+          padding-top: 10px;
+        }
+        /* 表のマスは、入りきらなければ折り返してよい */
+        td {
+          white-space: normal;
+        }
+        th, td {
+          padding: 4px 5px;
+        }
+        table {
+          font-size: 12px;
+        }
+        /* 学歴別の棒グラフ：棒を細く、ラベルを小さくして5本を収める */
+        .vbar {
+          width: 38px;  /* 「78.3%」が棒の中に収まる幅 */
+        }
+        .val,
+        .xlabels span {
+          font-size: 10px;
+        }
+        .xlabels span {
+          white-space: nowrap; /* 「専門・その他」が折り返さないように */
+        }
+        .report-title h1 {
+          font-size: 20px;
+        }
+        /* 棒と棒のすき間が狭く、点線の文字が棒に隠れるので、スマホでは出さない（見出しに書いてある） */
+        .avg-line span {
+          display: none;
+        }
+        .bar-item .vbar {
+          width: 22px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ここに、2-1 で出した結論を「読み手が一目で分かる1枚」に組み立てる。
+     見出し（結論）→ 根拠の文 → グラフ の順が基本。
+     グラフは画像を使わず、HTML・CSS・SVG で描く（`dataset/` から出した数字をもとに）。
+     大小の比較は CSS の <div> で棒グラフ、内訳は表、分布は箱ひげ図やヒストグラム、
+     相関は散布図、割合の構成は積み上げ棒。棒以外は <svg> で描く。見せたい中身で型を選ぶ。
+     CSSは別ファイルにせず、この <style> の中に書く。 -->
+
+    <!-- レポート全体。タイトル → 施策1〜3 → まとめ の順に並べる -->
+    <main class="sheet">
+
+      <!-- ========== レポートのタイトル ========== -->
+      <header class="report-title">
+        <h1>受講生の合格率を上げるための3つの施策案</h1>
+        <p>
+          対象：2024年秋開講の7講座・受講生<strong>3,000人</strong>　｜
+          使用データ：受講生・課題成績・課題マスタ　｜
+          合格率 =（合格＋優秀合格）÷ 受講生数（途中退会者も含む）
+        </p>
+      </header>
+
+      <!-- ========== 施策1（最初の課題） ========== -->
+      <section class="policy">
+        <header class="hero">
+          <h1>最初の課題を簡単な内容にする、もしくは分割すべき</h1>
+        </header>
+        <div class="policy-body two-rows">
+          <div class="text span2">
+            <p>
+              途中退会者の内、一度も課題を提出していない受講生が非常に多いため、
+              最初の課題に対する改善施策が合格率の向上につながると考えられる。
+            </p>
+            <!-- 数字のカード（標本数） -->
+            <div class="stats">
+              <div class="stat"><span class="stat-label">全受講生</span><span class="stat-num">3,000人</span></div>
+              <div class="stat"><span class="stat-label">途中退会者</span><span class="stat-num">990人</span><span class="stat-sub">全体の33.0%</span></div>
+              <div class="stat accent"><span class="stat-label">うち課題提出0回</span><span class="stat-num">525人</span><span class="stat-sub">途中退会者の53.0%</span></div>
+            </div>
+            <h2>なぜそう言えるのか</h2>
+            <p>
+              途中退会者の中には課題を一度も提出していない人が<strong>525人</strong>もいるので、
+              まずは課題を提出させることが途中退会者を減らすことに繋がる可能性あり。
+              最初の課題の提出率によって効果検証を実施する。
+            </p>
+          </div>
+          <div class="chart row2 no-line">
+            <h3>最終結果別の受講生数と、課題を一度も提出していない人数</h3>
+            <!-- 凡例：どの色が何の棒かを示す -->
+            <div class="legend">
+              <span><span class="swatch"></span>受講生数</span>
+              <span><span class="swatch accent"></span>提出0回の人数</span>
+            </div>
+            <!-- 棒の高さ ＝ 人数 ÷ 1400 × 100（上に数値を書く余白を残すため、最大値より少し大きい1400を100%とした） -->
+            <div class="gchart">
+              <div class="group">
+                <div class="bars">
+                  <div class="bar-item"><span>326</span><div class="vbar" style="height:23.3%"></div></div>
+                  <div class="bar-item"><span>0</span><div class="vbar accent" style="height:0%"></div></div>
+                </div>
+                <span class="label">優秀合格</span>
+              </div>
+              <div class="group">
+                <div class="bars">
+                  <div class="bar-item"><span>1201</span><div class="vbar" style="height:85.8%"></div></div>
+                  <div class="bar-item"><span>0</span><div class="vbar accent" style="height:0%"></div></div>
+                </div>
+                <span class="label">合格</span>
+              </div>
+              <div class="group">
+                <div class="bars">
+                  <div class="bar-item"><span>483</span><div class="vbar" style="height:34.5%"></div></div>
+                  <div class="bar-item"><span>66</span><div class="vbar accent" style="height:4.7%"></div></div>
+                </div>
+                <span class="label">不合格</span>
+              </div>
+              <div class="group">
+                <div class="bars">
+                  <div class="bar-item"><span>990</span><div class="vbar" style="height:70.7%"></div></div>
+                  <div class="bar-item"><span>525</span><div class="vbar accent" style="height:37.5%"></div></div>
+                </div>
+                <span class="label">途中退会</span>
+              </div>
+            </div>
+          </div>
+          <div class="chart row2">
+            <h3>課題ごとの提出率と実施日（途中退会者とそれ以外に分けて計算）</h3>
+            <div class="legend">
+              <span><span class="swatch round"></span>途中退会以外（30日で−2.2pt）</span>
+              <span><span class="swatch round accent"></span>途中退会者（30日で−5.5pt）</span>
+            </div>
+            <!--
+              散布図：1つの課題につき点を2つ描く（49課題 × 2グループ = 98個）
+              ・青  ＝ 途中退会以外（優秀合格・合格・不合格）の提出率 = 提出した人数 ÷ その講座の途中退会以外の人数
+              ・オレンジ ＝ 途中退会者の提出率         = 提出した人数 ÷ その講座の途中退会者の人数
+              ・提出は「自分が登録している講座の課題」だけを数える（他講座の課題を出している記録が315件あったため除外）
+              ・対象：7講座のレポート課題・小テスト 49件（修了試験は実施日が空欄のものがあるため除外）
+              ・点の横の位置 cx = 50 + 実施日 × 1.4      （0日目 → 50、250日目 → 400）
+              ・点の縦の位置 cy = 185 − 提出率 × 1.7    （0% → 185、100% → 15）
+            -->
+            <svg viewBox="0 0 420 222" role="img" aria-label="途中退会者とそれ以外の、課題ごとの提出率と実施日の散布図">
+              <!-- 横の目盛り線と縦軸の数字（0, 25, 50, 75, 100%） -->
+              <line class="svg-grid" x1="50" y1="15"    x2="405" y2="15" />
+              <line class="svg-grid" x1="50" y1="57.5"  x2="405" y2="57.5" />
+              <line class="svg-grid" x1="50" y1="100"   x2="405" y2="100" />
+              <line class="svg-grid" x1="50" y1="142.5" x2="405" y2="142.5" />
+              <text class="svg-tick" x="44" y="19">100%</text>
+              <text class="svg-tick" x="44" y="61.5">75%</text>
+              <text class="svg-tick" x="44" y="104">50%</text>
+              <text class="svg-tick" x="44" y="146.5">25%</text>
+              <text class="svg-tick" x="44" y="189">0%</text>
+
+              <!-- 横軸（0%の線）と、横軸の数字（開講からの日数） -->
+              <line class="svg-axis" x1="50" y1="185" x2="405" y2="185" />
+              <text class="svg-xtick" x="50"  y="201">0</text>
+              <text class="svg-xtick" x="134" y="201">60</text>
+              <text class="svg-xtick" x="218" y="201">120</text>
+              <text class="svg-xtick" x="302" y="201">180</text>
+              <text class="svg-xtick" x="386" y="201">240</text>
+              <text class="svg-xtick" x="228" y="218">開講からの日数（日目）</text>
+
+              <!-- 開講時は全員が在籍している（100%）という基準の点 -->
+              <circle class="dot start" cx="50" cy="15" r="4.5" />
+              <text class="svg-note" x="58" y="11">開講時 100%</text>
+
+              <!-- 途中退会以外（49個） -->
+              <circle class="dot stay" cx="135.4" cy="37.3" r="4" /> <!-- AI活用実践 1回目 61日目 86.9% -->
+              <circle class="dot stay" cx="223.6" cy="42.6" r="4" /> <!-- AI活用実践 2回目 124日目 83.8% -->
+              <circle class="dot stay" cx="292.2" cy="47.0" r="4" /> <!-- AI活用実践 3回目 173日目 81.2% -->
+              <circle class="dot stay" cx="370.6" cy="42.6" r="4" /> <!-- AI活用実践 4回目 229日目 83.8% -->
+              <circle class="dot stay" cx="370.6" cy="47.0" r="4" /> <!-- AI活用実践 5回目 229日目 81.2% -->
+              <circle class="dot stay" cx="370.6" cy="54.2" r="4" /> <!-- AI活用実践 6回目 229日目 77.0% -->
+              <circle class="dot stay" cx="370.6" cy="54.2" r="4" /> <!-- AI活用実践 7回目 229日目 77.0% -->
+              <circle class="dot stay" cx="370.6" cy="69.3" r="4" /> <!-- AI活用実践 8回目 229日目 68.1% -->
+              <circle class="dot stay" cx="370.6" cy="90.7" r="4" /> <!-- AI活用実践 9回目 229日目 55.5% -->
+              <circle class="dot stay" cx="96.2" cy="19.4" r="4" /> <!-- Pythonプログラミング 1回目 33日目 97.4% -->
+              <circle class="dot stay" cx="145.2" cy="25.9" r="4" /> <!-- Pythonプログラミング 2回目 68日目 93.6% -->
+              <circle class="dot stay" cx="233.4" cy="33.2" r="4" /> <!-- Pythonプログラミング 3回目 131日目 89.3% -->
+              <circle class="dot stay" cx="282.4" cy="39.7" r="4" /> <!-- Pythonプログラミング 4回目 166日目 85.5% -->
+              <circle class="dot stay" cx="75.2" cy="22.1" r="4" /> <!-- データサイエンス基礎 1回目 18日目 95.8% -->
+              <circle class="dot stay" cx="94.8" cy="53.3" r="4" /> <!-- データサイエンス基礎 2回目 32日目 77.5% -->
+              <circle class="dot stay" cx="143.8" cy="27.5" r="4" /> <!-- データサイエンス基礎 3回目 67日目 92.7% -->
+              <circle class="dot stay" cx="202.6" cy="62.2" r="4" /> <!-- データサイエンス基礎 4回目 109日目 72.3% -->
+              <circle class="dot stay" cx="251.6" cy="33.7" r="4" /> <!-- データサイエンス基礎 5回目 144日目 89.0% -->
+              <circle class="dot stay" cx="271.2" cy="69.3" r="4" /> <!-- データサイエンス基礎 6回目 158日目 68.1% -->
+              <circle class="dot stay" cx="339.8" cy="72.9" r="4" /> <!-- データサイエンス基礎 7回目 207日目 66.0% -->
+              <circle class="dot stay" cx="349.6" cy="47.9" r="4" /> <!-- データサイエンス基礎 8回目 214日目 80.6% -->
+              <circle class="dot stay" cx="76.6" cy="22.9" r="4" /> <!-- マーケティング分析 1回目 19日目 95.4% -->
+              <circle class="dot stay" cx="125.6" cy="26.0" r="4" /> <!-- マーケティング分析 2回目 54日目 93.5% -->
+              <circle class="dot stay" cx="213.8" cy="29.2" r="4" /> <!-- マーケティング分析 3回目 117日目 91.7% -->
+              <circle class="dot stay" cx="282.4" cy="33.9" r="4" /> <!-- マーケティング分析 4回目 166日目 88.9% -->
+              <circle class="dot stay" cx="351.0" cy="33.9" r="4" /> <!-- マーケティング分析 5回目 215日目 88.9% -->
+              <circle class="dot stay" cx="83.6" cy="18.7" r="4" /> <!-- 機械学習概論 1回目 24日目 97.8% -->
+              <circle class="dot stay" cx="122.8" cy="27.2" r="4" /> <!-- 機械学習概論 2回目 52日目 92.8% -->
+              <circle class="dot stay" cx="181.6" cy="33.1" r="4" /> <!-- 機械学習概論 3回目 94日目 89.3% -->
+              <circle class="dot stay" cx="240.4" cy="38.3" r="4" /> <!-- 機械学習概論 4回目 136日目 86.3% -->
+              <circle class="dot stay" cx="328.6" cy="56.0" r="4" /> <!-- 機械学習概論 5回目 199日目 75.9% -->
+              <circle class="dot stay" cx="387.4" cy="37.2" r="4" /> <!-- 機械学習概論 6回目 241日目 87.0% -->
+              <circle class="dot stay" cx="387.4" cy="39.8" r="4" /> <!-- 機械学習概論 7回目 241日目 85.4% -->
+              <circle class="dot stay" cx="387.4" cy="45.3" r="4" /> <!-- 機械学習概論 8回目 241日目 82.2% -->
+              <circle class="dot stay" cx="387.4" cy="46.4" r="4" /> <!-- 機械学習概論 9回目 241日目 81.5% -->
+              <circle class="dot stay" cx="387.4" cy="48.6" r="4" /> <!-- 機械学習概論 10回目 241日目 80.2% -->
+              <circle class="dot stay" cx="387.4" cy="46.4" r="4" /> <!-- 機械学習概論 11回目 241日目 81.5% -->
+              <circle class="dot stay" cx="387.4" cy="50.5" r="4" /> <!-- 機械学習概論 12回目 241日目 79.1% -->
+              <circle class="dot stay" cx="76.6" cy="20.7" r="4" /> <!-- 経営データ入門 1回目 19日目 96.7% -->
+              <circle class="dot stay" cx="125.6" cy="29.0" r="4" /> <!-- 経営データ入門 2回目 54日目 91.8% -->
+              <circle class="dot stay" cx="204.0" cy="33.3" r="4" /> <!-- 経営データ入門 3回目 110日目 89.2% -->
+              <circle class="dot stay" cx="262.8" cy="40.7" r="4" /> <!-- 経営データ入門 4回目 152日目 84.9% -->
+              <circle class="dot stay" cx="331.4" cy="44.7" r="4" /> <!-- 経営データ入門 5回目 201日目 82.5% -->
+              <circle class="dot stay" cx="78.0" cy="23.6" r="4" /> <!-- 統計学入門 1回目 20日目 94.9% -->
+              <circle class="dot stay" cx="107.4" cy="28.4" r="4" /> <!-- 統計学入門 2回目 41日目 92.1% -->
+              <circle class="dot stay" cx="136.8" cy="34.9" r="4" /> <!-- 統計学入門 3回目 62日目 88.3% -->
+              <circle class="dot stay" cx="205.4" cy="35.4" r="4" /> <!-- 統計学入門 4回目 111日目 88.0% -->
+              <circle class="dot stay" cx="254.4" cy="42.4" r="4" /> <!-- 統計学入門 5回目 146日目 83.9% -->
+              <circle class="dot stay" cx="323.0" cy="54.8" r="4" /> <!-- 統計学入門 6回目 195日目 76.6% -->
+              <!-- 途中退会（49個） -->
+              <circle class="dot drop" cx="135.4" cy="130.7" r="4" /> <!-- AI活用実践 1回目 61日目 31.9% -->
+              <circle class="dot drop" cx="223.6" cy="163.3" r="4" /> <!-- AI活用実践 2回目 124日目 12.8% -->
+              <circle class="dot drop" cx="292.2" cy="177.8" r="4" /> <!-- AI活用実践 3回目 173日目 4.3% -->
+              <circle class="dot drop" cx="370.6" cy="159.7" r="4" /> <!-- AI活用実践 4回目 229日目 14.9% -->
+              <circle class="dot drop" cx="370.6" cy="170.5" r="4" /> <!-- AI活用実践 5回目 229日目 8.5% -->
+              <circle class="dot drop" cx="370.6" cy="177.8" r="4" /> <!-- AI活用実践 6回目 229日目 4.3% -->
+              <circle class="dot drop" cx="370.6" cy="185.0" r="4" /> <!-- AI活用実践 7回目 229日目 0.0% -->
+              <circle class="dot drop" cx="370.6" cy="185.0" r="4" /> <!-- AI活用実践 8回目 229日目 0.0% -->
+              <circle class="dot drop" cx="370.6" cy="185.0" r="4" /> <!-- AI活用実践 9回目 229日目 0.0% -->
+              <circle class="dot drop" cx="96.2" cy="127.6" r="4" /> <!-- Pythonプログラミング 1回目 33日目 33.8% -->
+              <circle class="dot drop" cx="145.2" cy="164.3" r="4" /> <!-- Pythonプログラミング 2回目 68日目 12.2% -->
+              <circle class="dot drop" cx="233.4" cy="180.4" r="4" /> <!-- Pythonプログラミング 3回目 131日目 2.7% -->
+              <circle class="dot drop" cx="282.4" cy="182.7" r="4" /> <!-- Pythonプログラミング 4回目 166日目 1.4% -->
+              <circle class="dot drop" cx="75.2" cy="100.5" r="4" /> <!-- データサイエンス基礎 1回目 18日目 49.7% -->
+              <circle class="dot drop" cx="94.8" cy="126.2" r="4" /> <!-- データサイエンス基礎 2回目 32日目 34.6% -->
+              <circle class="dot drop" cx="143.8" cy="141.2" r="4" /> <!-- データサイエンス基礎 3回目 67日目 25.8% -->
+              <circle class="dot drop" cx="202.6" cy="165.8" r="4" /> <!-- データサイエンス基礎 4回目 109日目 11.3% -->
+              <circle class="dot drop" cx="251.6" cy="169.0" r="4" /> <!-- データサイエンス基礎 5回目 144日目 9.4% -->
+              <circle class="dot drop" cx="271.2" cy="182.9" r="4" /> <!-- データサイエンス基礎 6回目 158日目 1.3% -->
+              <circle class="dot drop" cx="339.8" cy="183.9" r="4" /> <!-- データサイエンス基礎 7回目 207日目 0.6% -->
+              <circle class="dot drop" cx="349.6" cy="183.9" r="4" /> <!-- データサイエンス基礎 8回目 214日目 0.6% -->
+              <circle class="dot drop" cx="76.6" cy="43.3" r="4" /> <!-- マーケティング分析 1回目 19日目 83.3% -->
+              <circle class="dot drop" cx="125.6" cy="81.1" r="4" /> <!-- マーケティング分析 2回目 54日目 61.1% -->
+              <circle class="dot drop" cx="213.8" cy="71.7" r="4" /> <!-- マーケティング分析 3回目 117日目 66.7% -->
+              <circle class="dot drop" cx="282.4" cy="137.8" r="4" /> <!-- マーケティング分析 4回目 166日目 27.8% -->
+              <circle class="dot drop" cx="351.0" cy="147.2" r="4" /> <!-- マーケティング分析 5回目 215日目 22.2% -->
+              <circle class="dot drop" cx="83.6" cy="107.4" r="4" /> <!-- 機械学習概論 1回目 24日目 45.6% -->
+              <circle class="dot drop" cx="122.8" cy="141.7" r="4" /> <!-- 機械学習概論 2回目 52日目 25.5% -->
+              <circle class="dot drop" cx="181.6" cy="166.3" r="4" /> <!-- 機械学習概論 3回目 94日目 11.0% -->
+              <circle class="dot drop" cx="240.4" cy="174.0" r="4" /> <!-- 機械学習概論 4回目 136日目 6.5% -->
+              <circle class="dot drop" cx="328.6" cy="184.4" r="4" /> <!-- 機械学習概論 5回目 199日目 0.4% -->
+              <circle class="dot drop" cx="387.4" cy="157.9" r="4" /> <!-- 機械学習概論 6回目 241日目 16.0% -->
+              <circle class="dot drop" cx="387.4" cy="165.0" r="4" /> <!-- 機械学習概論 7回目 241日目 11.8% -->
+              <circle class="dot drop" cx="387.4" cy="177.9" r="4" /> <!-- 機械学習概論 8回目 241日目 4.2% -->
+              <circle class="dot drop" cx="387.4" cy="179.8" r="4" /> <!-- 機械学習概論 9回目 241日目 3.0% -->
+              <circle class="dot drop" cx="387.4" cy="184.4" r="4" /> <!-- 機械学習概論 10回目 241日目 0.4% -->
+              <circle class="dot drop" cx="387.4" cy="185.0" r="4" /> <!-- 機械学習概論 11回目 241日目 0.0% -->
+              <circle class="dot drop" cx="387.4" cy="185.0" r="4" /> <!-- 機械学習概論 12回目 241日目 0.0% -->
+              <circle class="dot drop" cx="76.6" cy="113.7" r="4" /> <!-- 経営データ入門 1回目 19日目 41.9% -->
+              <circle class="dot drop" cx="125.6" cy="136.3" r="4" /> <!-- 経営データ入門 2回目 54日目 28.6% -->
+              <circle class="dot drop" cx="204.0" cy="156.9" r="4" /> <!-- 経営データ入門 3回目 110日目 16.5% -->
+              <circle class="dot drop" cx="262.8" cy="176.1" r="4" /> <!-- 経営データ入門 4回目 152日目 5.2% -->
+              <circle class="dot drop" cx="331.4" cy="181.6" r="4" /> <!-- 経営データ入門 5回目 201日目 2.0% -->
+              <circle class="dot drop" cx="78.0" cy="111.7" r="4" /> <!-- 統計学入門 1回目 20日目 43.1% -->
+              <circle class="dot drop" cx="107.4" cy="124.9" r="4" /> <!-- 統計学入門 2回目 41日目 35.4% -->
+              <circle class="dot drop" cx="136.8" cy="139.0" r="4" /> <!-- 統計学入門 3回目 62日目 27.1% -->
+              <circle class="dot drop" cx="205.4" cy="163.4" r="4" /> <!-- 統計学入門 4回目 111日目 12.7% -->
+              <circle class="dot drop" cx="254.4" cy="171.9" r="4" /> <!-- 統計学入門 5回目 146日目 7.7% -->
+              <circle class="dot drop" cx="323.0" cy="180.3" r="4" /> <!-- 統計学入門 6回目 195日目 2.8% -->
+
+              <!--
+                回帰線（最小二乗法）。データがある範囲だけに引く
+                ・途中退会以外：提出率 = 95.06 − 0.0733 × 実施日（r = −0.66）
+                    18日目 → 93.7% → (75.2, 25.6)、241日目 → 77.4% → (387.4, 53.4)
+                ・途中退会者 ：提出率 = 43.85 − 0.1841 × 実施日（r = −0.74）
+                    18日目 → 40.5% → (75.2, 116.1)。238日目で0%になるので、そこ (383.5, 185) で止める
+              -->
+              <line class="svg-trend stay" x1="75.2" y1="25.6"  x2="387.4" y2="53.4" />
+              <line class="svg-trend drop" x1="75.2" y1="116.1" x2="383.5" y2="185" />
+            </svg>
+            <p class="note">1回目の課題の提出率は、途中退会以外が平均<strong>95.0%</strong>なのに対し、途中退会者は平均<strong>47.1%</strong>。途中退会者の約半数は最初の課題を出していない。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== 施策2（学歴） ========== -->
+      <section class="policy">
+        <header class="hero">
+          <h1>専門・その他の学歴グループに対しての支援策を講じるべき</h1>
+        </header>
+        <div class="policy-body">
+          <div class="text">
+            <p>
+              専門・その他グループの受講生が1206人、かつ合格率が平均値以下であり、
+              最も効果の出やすい学歴グループであると言える。
+              支援策を講じたあと、ほか学歴グループとの合格率の比較によって効果検証を実施。
+            </p>
+            <!-- 数字のカード（学歴グループ別の標本数） -->
+            <div class="stats">
+              <div class="stat"><span class="stat-label">高卒</span><span class="stat-num">1,299人</span></div>
+              <div class="stat accent"><span class="stat-label">専門・その他</span><span class="stat-num">1,206人</span></div>
+              <div class="stat"><span class="stat-label">大卒</span><span class="stat-num">437人</span></div>
+              <div class="stat"><span class="stat-label">大学院卒</span><span class="stat-num">23人</span></div>
+              <div class="stat"><span class="stat-label">その他</span><span class="stat-num">35人</span></div>
+            </div>
+            <p class="note">※ 大学院卒（23人）とその他（35人）は人数が少ないため、合格率は参考値。</p>
+            <h2>なぜそう言えるのか</h2>
+            <p>全体の平均合格率が<strong>50.9％</strong>であるのに対し、
+              専門・その他の学歴グループは<strong>42.6％</strong>となっており、
+              且つこのグループの受講生数は<strong>1206人</strong>と全体で
+              ２番目に多いグループである。</p>
+            <h3>学歴別の合格率（合格＋優秀合格、途中退会者も分母に含む）</h3>
+            <table>
+              <tr><th>学歴グループ</th><th>受講生</th><th>合格者数</th><th>合格率(％)</th></tr>
+              <tr><td>高卒</td><td>1299</td><td>714</td><td>55.0</td></tr>
+              <tr><td>専門・その他</td><td>1206</td><td>514</td><td>42.6</td></tr>
+              <tr><td>大卒</td><td>437</td><td>271</td><td>62.0</td></tr>
+              <tr><td>大学院卒</td><td>23</td><td>18</td><td>78.3</td></tr>
+              <tr><td>その他</td><td>35</td><td>10</td><td>28.6</td></tr>
+            </table>
+          </div>
+          <div class="chart">
+            <h3>学歴別の合格率の比較（点線＝全体平均 50.9%）</h3>
+            <!--
+              棒グラフ（CSSの div で描く）
+              ・.vchart が描く範囲（高さ200px = 100%）。棒の高さ = 合格率%
+              ・ラベルは .xlabels としてグラフの外（下）に出したので、棒の高さが正確に合格率になる
+              ・全体平均の点線は position: absolute で、下から 50.9% の高さに置く
+              ・点線は棒の「後ろ」に置き（z-index）、数値は棒の中の下のほうに白で書く → 数値と点線が重ならない
+            -->
+            <div class="vchart">
+              <div class="slot"><div class="vbar" style="height:55.0%"><span class="val">55.0%</span></div></div>
+              <div class="slot"><div class="vbar accent" style="height:42.6%"><span class="val">42.6%</span></div></div>
+              <div class="slot"><div class="vbar" style="height:62.0%"><span class="val">62.0%</span></div></div>
+              <div class="slot"><div class="vbar" style="height:78.3%"><span class="val">78.3%</span></div></div>
+              <div class="slot"><div class="vbar" style="height:28.6%"><span class="val">28.6%</span></div></div>
+              <div class="avg-line" style="bottom:50.9%"><span>全体平均 50.9%</span></div>
+            </div>
+            <div class="xlabels">
+              <span>高卒<br><small>n=1,299</small></span>
+              <span><strong>専門・その他</strong><br><small>n=1,206</small></span>
+              <span>大卒<br><small>n=437</small></span>
+              <span>大学院卒<br><small>n=23</small></span>
+              <span>その他<br><small>n=35</small></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== 施策3 ========== -->
+      <section class="policy">
+        <header class="hero">
+          <h1>20~30代に対する支援策を講じるべき</h1>
+        </header>
+        <div class="policy-body">
+          <div class="text">
+            <p>
+              若年層に対する支援策を講じることで合格率の向上が見込まれる。
+            </p>
+            <h2>なぜそう言えるのか</h2>
+            <p>
+              3000人の受講生の内2065人が20〜34歳のグループに入っており、
+              このグループの合格率は<strong>47.9％</strong>と、全体平均の<strong>50.9％</strong>を3ポイントも下回っている（35〜54歳は57.3％、55歳以上は64.7％）。
+            </p>
+            <h3>若年層の受講が多い4講座の合格率（4講座で若年層の79.2%・1636人）</h3>
+            <!-- 合格率 =（合格＋優秀合格）÷ 途中退会者も含めた受講生数。「他の年代」= 35〜54歳 と 55歳以上 -->
+            <table>
+              <tr><th>講座</th><th>若年層の人数</th><th>若年層の合格率(％)</th><th>他の年代の合格率(％)</th><th>差(pt)</th></tr>
+              <tr><td>機械学習概論</td><td>531</td><td>46.7</td><td>55.2</td><td>−8.5</td></tr>
+              <tr><td>経営データ入門</td><td>498</td><td>49.4</td><td>56.9</td><td>−7.5</td></tr>
+              <tr><td>統計学入門</td><td>372</td><td>38.2</td><td>57.6</td><td class="hl">−19.4</td></tr>
+              <tr><td>データサイエンス基礎</td><td>235</td><td>39.1</td><td>46.1</td><td>−7.0</td></tr>
+            </table>
+          </div>
+          <div class="chart">
+            <h3>年代別の受講生の構成比（全3000人）</h3>
+            <!--
+              円グラフの描き方：「太い線で円を描き、線を途中で切る」方法を使う。
+              ・円周の長さ = 2 × 3.14159 × 半径90 = 565.49
+              ・各色の線の長さ = 割合 × 565.49
+                  20〜34歳 2065人 ÷ 3000 = 68.8% → 389.24
+                  35〜54歳  918人 ÷ 3000 = 30.6% → 173.04
+                  55歳以上   17人 ÷ 3000 =  0.6% →   3.21
+              ・stroke-dasharray="線の長さ 円周" … その長さだけ線を引き、残りは空白にする
+              ・stroke-dashoffset="−(前の色までの長さの合計)" … 前の色の続きから描き始める
+              ・transform="rotate(-90 …)" … 描き始めを3時の位置から12時の位置へ回す
+            -->
+            <svg viewBox="0 0 600 250" role="img" aria-label="年代別の受講生の構成比の円グラフ">
+              <g transform="rotate(-90 130 125)">
+                <circle class="pie pie-young" cx="130" cy="125" r="90"
+                        stroke-dasharray="389.24 565.49" stroke-dashoffset="0" />
+                <circle class="pie pie-middle" cx="130" cy="125" r="90"
+                        stroke-dasharray="173.04 565.49" stroke-dashoffset="-389.24" />
+                <circle class="pie pie-senior" cx="130" cy="125" r="90"
+                        stroke-dasharray="3.21 565.49" stroke-dashoffset="-562.28" />
+              </g>
+              <!-- 真ん中の文字 -->
+              <text class="pie-center" x="130" y="118">受講生</text>
+              <text class="pie-center big" x="130" y="146">3000人</text>
+
+              <!-- 凡例（色の四角 ＋ 説明） -->
+              <rect class="pie-young-fill"  x="285" y="62"  width="18" height="18" />
+              <text class="svg-legend" x="312" y="78"><tspan class="strong">20〜34歳</tspan>　2065人（68.8%）</text>
+              <rect class="pie-middle-fill" x="285" y="112" width="18" height="18" />
+              <text class="svg-legend" x="312" y="128">35〜54歳　918人（30.6%）</text>
+              <rect class="pie-senior-fill" x="285" y="162" width="18" height="18" />
+              <text class="svg-legend" x="312" y="178">55歳以上　17人（0.6%）</text>
+            </svg>
+
+            <h3>年代別の合格率（点線＝全体平均 50.9%）</h3>
+            <!--
+              SVGの棒グラフ。描く範囲：y=30（100%）〜 210（0%）。高さ180 = 100%
+              ・棒の高さ = 合格率 × 1.8 、棒の上端のy = 210 − 棒の高さ
+                20〜34歳 47.9% → 高さ 86.2、y=123.8
+                35〜54歳 57.3% → 高さ103.1、y=106.9
+                55歳以上 64.7% → 高さ116.5、y= 93.5
+              ・全体平均 50.9% → y = 210 − 91.6 = 118.4
+              ・数値は棒の中の下のほうに白い文字で書く（平均の点線と重ならないように）
+            -->
+            <svg viewBox="0 0 600 270" role="img" aria-label="年代別の合格率の棒グラフ">
+              <line class="age-grid" x1="60" y1="30"  x2="580" y2="30" />
+              <line class="age-grid" x1="60" y1="75"  x2="580" y2="75" />
+              <line class="age-grid" x1="60" y1="120" x2="580" y2="120" />
+              <line class="age-grid" x1="60" y1="165" x2="580" y2="165" />
+              <text class="age-tick" x="52" y="35">100%</text>
+              <text class="age-tick" x="52" y="80">75%</text>
+              <text class="age-tick" x="52" y="125">50%</text>
+              <text class="age-tick" x="52" y="170">25%</text>
+              <text class="age-tick" x="52" y="215">0%</text>
+
+              <!-- 平均の点線は棒より先に描く（SVGは後に描いたものが手前に来るので、棒が点線を隠す） -->
+              <line class="age-avg" x1="60" y1="118.4" x2="580" y2="118.4" />
+              <text class="age-avg-label" x="402.5" y="111">平均 50.9%</text>
+
+              <rect class="age-bar accent" x="95"  y="123.8" width="90" height="86.2" />  <!-- 20〜34歳 47.9% -->
+              <rect class="age-bar"        x="270" y="106.9" width="90" height="103.1" /> <!-- 35〜54歳 57.3% -->
+              <rect class="age-bar"        x="445" y="93.5"  width="90" height="116.5" /> <!-- 55歳以上 64.7% -->
+              <!-- 数値は棒の中の下のほう（y=195）に白で書く -->
+              <text class="age-value" x="140" y="195">47.9%</text>
+              <text class="age-value" x="315" y="195">57.3%</text>
+              <text class="age-value" x="490" y="195">64.7%</text>
+
+              <line class="age-axis" x1="60" y1="210" x2="580" y2="210" />
+              <text class="age-label" x="140" y="236">20〜34歳</text>
+              <text class="age-label" x="315" y="236">35〜54歳</text>
+              <text class="age-label" x="490" y="236">55歳以上</text>
+              <text class="age-n" x="140" y="260">n=2,065</text>
+              <text class="age-n" x="315" y="260">n=918</text>
+              <text class="age-n" x="490" y="260">n=17（参考値）</text>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== まとめ ========== -->
+      <section class="policy summary">
+        <header class="hero">
+          <h1>施策案のまとめと、今回の調査での不明点・懸念点</h1>
+        </header>
+        <div class="policy-body">
+          <!-- ol = 番号付きの箇条書き、li = 1項目。左右の番号が同じ施策に対応する -->
+          <div class="text">
+            <h2>打ち手</h2>
+            <ol class="summary-list">
+              <li>最初の課題を二分割にする
+                <span class="reason">
+                  理由：1回目の課題の提出率は、途中退会以外の受講生が平均<strong>95.0%</strong>なのに対し、途中退会者は平均<strong>47.1%</strong>にとどまる。
+                  最初の課題を小さく分けて「最初の1回を提出する」ハードルを下げ、提出の習慣をつけることで途中退会を減らし、合格率の向上につなげる。
+                  効果は1回目の課題の提出率で検証する。
+                </span>
+              </li>
+              <li>専門・その他の学歴グループを対象にしてメンタリングの回数・頻度を一定期間増やす</li>
+              <li>統計学入門の講座に関して、定期的に対面セッションを設ける</li>
+            </ol>
+          </div>
+          <div class="text col-line">
+            <h2>懸念点</h2>
+            <ol class="summary-list">
+              <li>最も簡単に実現できる施策案であるが、効果は限定的であると考えられる。</li>
+              <li>専門・その他の学歴グループの合格率が低い原因が講座の難易度と相関しているとは限らない。メンタリングによって何が要因となっているのかヒアリングする必要がある。</li>
+              <li>そもそも講座に対面セッションが無いのかどうかは資料からは不明。</li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </body>
+</html>
